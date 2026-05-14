@@ -1,4 +1,3 @@
-/* Layout fixed to 100vh so it never scrolls */
 .player {
   display: flex;
   flex-direction: column;
@@ -9,7 +8,6 @@
   box-sizing: border-box;
 }
 
-/* Controls Header */
 .topbar {
   flex-shrink: 0;
   display: flex;
@@ -83,6 +81,30 @@
   color: var(--accent1, #c8ff00);
 }
 
+.instrumentSelector {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #333);
+}
+
+.instrumentSelector select {
+  background: transparent;
+  color: var(--text, #fff);
+  border: none;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.instrumentSelector select option {
+  background: #111;
+  color: #fff;
+}
+
 .volumeControl {
   display: flex;
   align-items: center;
@@ -97,7 +119,6 @@
   accent-color: var(--accent2, #00e5ff);
 }
 
-/* Canvas Container dynamically fills remaining vertical space */
 .canvasContainer {
   flex: 1;
   min-height: 0; 
@@ -123,7 +144,6 @@
   text-transform: uppercase;
 }
 
-/* Progress Bar */
 .progressRow {
   flex-shrink: 0;
   display: flex;
@@ -155,7 +175,6 @@
   transition: width 0.1s linear;
 }
 
-/* Realistic Piano Keyboard */
 .keyboardWrap {
   flex-shrink: 0;
   width: 100%;
@@ -204,24 +223,23 @@
   padding-bottom: 6px;
 }
 
-/* Note Text Labels */
+/* Updated Text Labels */
 .keyLabelDark {
   font-family: var(--font-mono, monospace);
   font-size: 0.55rem;
-  color: #555;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+  color: #000;
+  text-align: center;
+  width: 100%;
 }
 
 .keyLabelLight {
   font-family: var(--font-mono, monospace);
   font-size: 0.5rem;
-  color: #aaa;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+  color: #fff;
+  text-align: center;
+  width: 100%;
 }
 
-/* Active Highlight Colors */
 .activeWhite {
   background: var(--accent1, #c8ff00);
   box-shadow: inset 0 0 15px rgba(200, 255, 0, 0.5);
