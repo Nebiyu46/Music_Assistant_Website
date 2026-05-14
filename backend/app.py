@@ -2,11 +2,13 @@ import io
 import time
 from pathlib import Path
 from typing import Dict, List, Tuple
+import io
 
 import serial  # pip install pyserial
 import mido    # pip install mido
 from flask import Flask, abort, jsonify, send_file, request
 from flask_cors import CORS
+from music21 import converter
 
 # --- CONFIGURATION ---
 COM_PORT = 'COM10'  # <--- CHANGE THIS to your actual STM32 Port (e.g., /dev/ttyACM0 on Linux/Mac)
@@ -139,6 +141,32 @@ def get_songs():
     """Return list of available songs."""
     song_list = [{"id": sid, "title": data["title"]} for sid, data in SONGS.items()]
     return jsonify(song_list)
+@app.route("/api/convert-upload", methods=["POST"])
+def convert_upload():
+    """Convert an uploaded MIDI file to MusicXML in real-time."""
+    if 'file' not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+    
+    file = request.files['file']
+    
+    try:
+        # Save to a temporary location so music21 can read it
+        temp_midi = "temp_upload.mid"
+        file.save(temp_midi)
+        
+        # Convert MIDI -> MusicXML
+        score = converter.parse(temp_midi)
+        xml_out = score.write('musicxml')
+        
+        with open(xml_out, 'rb') as f:
+            data = f.read()
+            
+        return send_file(
+            io.BytesIO(data),
+            mimetype="application/vnd.recordare.musicxml+xml"
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/download/<int:song_id>", methods=["GET"])

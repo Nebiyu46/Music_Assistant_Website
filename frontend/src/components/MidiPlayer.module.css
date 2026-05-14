@@ -1,0 +1,234 @@
+/* Layout fixed to 100vh so it never scrolls */
+.player {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: var(--bg, #04040e);
+  overflow: hidden; 
+  box-sizing: border-box;
+}
+
+/* Controls Header */
+.topbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: rgba(20, 20, 20, 0.9);
+  border-bottom: 1px solid var(--border, #333);
+}
+
+.uploadBtn {
+  background: var(--accent1, #c8ff00);
+  color: #000;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.uploadBtn:hover {
+  transform: scale(1.05);
+}
+
+.fileName {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+  color: var(--accent2, #00e5ff);
+}
+
+.transport {
+  display: flex;
+  gap: 8px;
+  background: #000;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #333);
+}
+
+.tBtn {
+  background: transparent;
+  border: none;
+  color: var(--text, #fff);
+  width: 40px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, monospace);
+}
+
+.tBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.tBtn:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tBtnActive {
+  background: rgba(0, 229, 255, 0.2);
+  color: var(--accent2, #00e5ff);
+}
+
+.tBtnPlay {
+  color: var(--accent1, #c8ff00);
+}
+
+.volumeControl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted, #888);
+  margin-left: auto; 
+}
+
+.volumeControl input[type="range"] {
+  width: 100px;
+  cursor: pointer;
+  accent-color: var(--accent2, #00e5ff);
+}
+
+/* Canvas Container dynamically fills remaining vertical space */
+.canvasContainer {
+  flex: 1;
+  min-height: 0; 
+  width: 100%;
+  position: relative;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono, monospace);
+  color: var(--muted, #666);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Progress Bar */
+.progressRow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.time {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--muted, #888);
+  min-width: 45px;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent2, #00e5ff);
+  transition: width 0.1s linear;
+}
+
+/* Realistic Piano Keyboard */
+.keyboardWrap {
+  flex-shrink: 0;
+  width: 100%;
+  padding: 0;
+  background: #000;
+  border-top: 2px solid #ff3cac; 
+}
+
+.keyboard {
+  position: relative;
+  width: 100%;
+  height: 130px; 
+  display: block;
+}
+
+.whiteKey {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1);
+  transition: background 0.1s;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+}
+
+.blackKey {
+  position: absolute;
+  top: 0;
+  height: 62%; 
+  background: #111;
+  border-radius: 0 0 4px 4px;
+  z-index: 2; 
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.5), inset 0 -3px 5px rgba(255,255,255,0.1);
+  transition: background 0.1s;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+}
+
+/* Note Text Labels */
+.keyLabelDark {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.55rem;
+  color: #555;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.keyLabelLight {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.5rem;
+  color: #aaa;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* Active Highlight Colors */
+.activeWhite {
+  background: var(--accent1, #c8ff00);
+  box-shadow: inset 0 0 15px rgba(200, 255, 0, 0.5);
+  border-color: rgba(200, 255, 0, 0.5);
+}
+
+.activeBlack {
+  background: var(--accent2, #00e5ff);
+  box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.5);
+}

@@ -9,8 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@magenta/music": "^1.23.1",
+    "@tonejs/midi": "^2.0.28",
+    "opensheetmusicdisplay": "^1.9.9",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.15.1",
+    "tone": "^15.1.22"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.0",
