@@ -11,7 +11,7 @@ from flask_cors import CORS
 from music21 import converter
 
 # --- CONFIGURATION ---
-COM_PORT = 'COM10'  # <--- CHANGE THIS to your actual STM32 Port (e.g., /dev/ttyACM0 on Linux/Mac)
+COM_PORT = 'COM9'  # <--- CHANGE THIS to your actual STM32 Port (e.g., /dev/ttyACM0 on Linux/Mac)
 BAUD_RATE = 115200
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -26,21 +26,16 @@ SONGS: Dict[int, Dict[str, List[Tuple[int, int, int]]]] = {}
 
 # --- HELPER: MIDI PARSER ---
 def parse_midi_to_notes(midi_path: Path) -> List[Tuple[int, int, int]]:
-    """
-    Parse a MIDI file into (start_ms, midi_note, duration_ms) tuples.
-    """
     mid = mido.MidiFile(midi_path)
-    tempo = 500_000  # Default 120 BPM
+    tempo = 500_000
     ticks_per_beat = mid.ticks_per_beat
     current_time_sec = 0.0
     note_on_times: Dict[int, float] = {}
     notes: List[Tuple[int, int, int]] = []
 
     for msg in mido.merge_tracks(mid.tracks):
-        # Update current time
         if msg.time:
             current_time_sec += mido.tick2second(msg.time, ticks_per_beat, tempo)
-
         if msg.type == "set_tempo":
             tempo = msg.tempo
         elif msg.type == "note_on" and msg.velocity > 0:
@@ -49,18 +44,24 @@ def parse_midi_to_notes(midi_path: Path) -> List[Tuple[int, int, int]]:
             if msg.note in note_on_times:
                 start = note_on_times.pop(msg.note)
                 duration = current_time_sec - start
-                notes.append(
-                    (
-                        int(round(start * 1000)),
-                        int(msg.note),
-                        int(round(duration * 1000)),
-                    )
-                )
+                notes.append((
+                    int(round(start * 1000)),
+                    int(msg.note),
+                    int(round(duration * 1000)),
+                ))
 
-    # Sort by start time
     notes.sort(key=lambda n: n[0])
-    return notes
 
+    # Group by start time, keep only highest note
+    from itertools import groupby
+    filtered = []
+    for start_time, group in groupby(notes, key=lambda n: n[0]):
+        group_list = list(group)
+        # Keep the highest MIDI note (melody)
+        best = max(group_list, key=lambda n: n[1])
+        filtered.append(best)
+
+    return filtered
 
 # --- HELPER: UART SENDER ---
 def send_over_uart(song_data: List[Tuple[int, int, int]], port: str) -> bool:
