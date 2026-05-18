@@ -65,51 +65,53 @@ export default function StmPanel() {
   };
 
   return (
-    <div className={styles.panel}>
-      <div className={styles.header}>
-        <span className={styles.chip}>⚡ STM32</span>
-        <h2 className={styles.title}>Device Transfer</h2>
-        <p className={styles.sub}>Select a song and push it to your STM32 over UART serial.</p>
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>Song</label>
-        <select
-          className={styles.select}
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-        >
-          {songs.map((song) => (
-            <option key={song.id} value={song.id}>
-              {song.title}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className={styles.actions}>
-        <button
-          className={`${styles.btn} ${styles.btnGhost}`}
-          onClick={handleDownload}
-          disabled={loading}
-        >
-          ↓ Download .txt
-        </button>
-        <button
-          className={`${styles.btn} ${styles.btnPrimary}`}
-          onClick={handleSendToDevice}
-          disabled={loading}
-        >
-          {loading ? "Sending…" : "Send to STM32 →"}
-        </button>
-      </div>
-
-      {status && (
-        <div className={styles.status}>
-          <span className={styles.statusDot} />
-          {status}
+    <div className={styles.fullscreenWrapper}>
+      <div className={styles.panel}>
+        <div className={styles.header}>
+          <span className={styles.chip}>⚡ STM32</span>
+          <h2 className={styles.title}>Device Transfer</h2>
+          <p className={styles.sub}>Select a song and push it to your STM32 over UART serial.</p>
         </div>
-      )}
+
+        <div className={styles.field}>
+          <label className={styles.label}>Song</label>
+          <select
+            className={styles.select}
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+          >
+            {songs.map((song) => (
+              <option key={song.id} value={song.id}>
+                {song.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.actions}>
+          <button
+            className={`${styles.btn} ${styles.btnGhost}`}
+            onClick={handleDownload}
+            disabled={loading}
+          >
+            ↓ Download .txt
+          </button>
+          <button
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={handleSendToDevice}
+            disabled={loading}
+          >
+            {loading ? "Sending…" : "Send to STM32 →"}
+          </button>
+        </div>
+
+        {status && (
+          <div className={styles.status}>
+            <span className={styles.statusDot} />
+            {status}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

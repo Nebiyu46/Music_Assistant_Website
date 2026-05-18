@@ -1,136 +1,151 @@
+.fullscreenWrapper {
+  /* Pin it to the exact dimensions of the browser window */
+  position: fixed;
+  inset: 0; /* Shorthand for top: 0, left: 0, right: 0, bottom: 0 */
+  width: 100vw;
+  height: 100vh;
+  
+  /* Use your global background variable! */
+  background: var(--bg);
+  
+  /* Grid centering is bulletproof */
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
 .panel {
   width: 100%;
-  max-width: 540px;
+  max-width: 480px; 
+  /* Using your global surface variable */
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 40px;
+  border-radius: 12px;
+  padding: 32px;
+  box-sizing: border-box;
+  /* Add a cool shadow to make it pop */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
 }
 
 .header {
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 .chip {
   display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  background: rgba(200, 255, 0, 0.1);
   color: var(--accent1);
-  border: 1px solid rgba(200, 255, 0, 0.25);
-  border-radius: 999px;
-  padding: 4px 12px;
-  margin-bottom: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  margin-bottom: 12px;
+  font-weight: bold;
 }
 
 .title {
+  color: var(--text);
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  margin-bottom: 8px;
+  margin: 0 0 8px 0;
 }
 
 .sub {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
   color: var(--muted);
-  line-height: 1.7;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
 }
 
 .field {
-  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
 }
 
 .label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .select {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
+  background: #000;
   color: var(--text);
-  font-size: 0.95rem;
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 6px;
   outline: none;
-  transition: border-color 0.2s;
+  font-size: 1rem;
 }
 
 .select:focus {
-  border-color: rgba(200, 255, 0, 0.4);
+  border-color: var(--accent2);
 }
 
 .actions {
   display: flex;
   gap: 12px;
-  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
 .btn {
   flex: 1;
-  min-width: 140px;
-  padding: 14px 20px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn:disabled {
   opacity: 0.4;
-  pointer-events: none;
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-}
-
-.btnGhost {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-.btnGhost:hover {
-  border-color: rgba(255,255,255,0.3);
+  cursor: not-allowed;
 }
 
 .btnPrimary {
   background: var(--accent1);
   color: #000;
-  border: none;
 }
 
-.btnPrimary:hover {
-  box-shadow: 0 4px 20px rgba(200, 255, 0, 0.3);
+.btnGhost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btnGhost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .status {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 24px;
+  gap: 8px;
+  color: var(--accent2);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--muted);
-  border-top: 1px solid var(--border);
-  padding-top: 20px;
+  font-size: 0.85rem;
+  background: rgba(0, 229, 255, 0.05);
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 229, 255, 0.1);
 }
 
 .statusDot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--accent2);
   border-radius: 50%;
-  background: var(--accent1);
-  flex-shrink: 0;
+  box-shadow: 0 0 8px var(--accent2);
 }

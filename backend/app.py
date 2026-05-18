@@ -1,19 +1,14 @@
 import io
-import time
 from pathlib import Path
 from typing import Dict, List, Tuple
-import io
+from itertools import groupby
 
-import serial  # pip install pyserial
 import mido    # pip install mido
 from flask import Flask, abort, jsonify, send_file, request
 from flask_cors import CORS
 from music21 import converter
 
 # --- CONFIGURATION ---
-COM_PORT = 'COM9'  # <--- CHANGE THIS to your actual STM32 Port (e.g., /dev/ttyACM0 on Linux/Mac)
-BAUD_RATE = 115200
-
 BASE_DIR = Path(__file__).resolve().parent
 SONGS_DIR = BASE_DIR / "songs"
 
@@ -53,7 +48,6 @@ def parse_midi_to_notes(midi_path: Path) -> List[Tuple[int, int, int]]:
     notes.sort(key=lambda n: n[0])
 
     # Group by start time, keep only highest note
-    from itertools import groupby
     filtered = []
     for start_time, group in groupby(notes, key=lambda n: n[0]):
         group_list = list(group)
@@ -62,50 +56,6 @@ def parse_midi_to_notes(midi_path: Path) -> List[Tuple[int, int, int]]:
         filtered.append(best)
 
     return filtered
-
-# --- HELPER: UART SENDER ---
-def send_over_uart(song_data: List[Tuple[int, int, int]], port: str) -> bool:
-    """
-    Opens the serial port and streams the song data to the STM32.
-    """
-    try:
-        print(f"Opening {port}...")
-        ser = serial.Serial(port, BAUD_RATE, timeout=2)
-        time.sleep(2)  # Wait for DTR/RTS reset if applicable
-
-        # 1. Send START command
-        ser.write(b"START\n")
-        time.sleep(0.1)
-
-        # 2. Stream Data
-        print(f"Sending {len(song_data)} notes...")
-        for start, note, duration in song_data:
-            # Format: "START,NOTE,DURATION\n"
-            line = f"{start},{note},{duration}\n"
-            ser.write(line.encode('utf-8'))
-            
-            # Throttle slightly to prevent STM32 buffer overflow
-            time.sleep(0.01)
-
-        # 3. Send END command
-        ser.write(b"END\n")
-        print("Waiting for verification from STM32...")
-        # Read response for 3 seconds
-        end_time = time.time() + 3
-        while time.time() < end_time:
-            if ser.in_waiting:
-                # Read line from STM32 and print it to Python Console
-                print(f"STM32: {ser.readline().decode('utf-8', errors='ignore').strip()}")
-        ser.close()
-        print("Transfer complete.")
-        return True
-
-    except serial.SerialException as e:
-        print(f"UART Error: {e}")
-        return False
-    except Exception as e:
-        print(f"General Error: {e}")
-        return False
 
 
 # --- INITIALIZATION ---
@@ -142,6 +92,8 @@ def get_songs():
     """Return list of available songs."""
     song_list = [{"id": sid, "title": data["title"]} for sid, data in SONGS.items()]
     return jsonify(song_list)
+
+
 @app.route("/api/convert-upload", methods=["POST"])
 def convert_upload():
     """Convert an uploaded MIDI file to MusicXML in real-time."""
@@ -172,7 +124,7 @@ def convert_upload():
 
 @app.route("/api/download/<int:song_id>", methods=["GET"])
 def download_song(song_id: int):
-    """Download song as song.txt (CSV format) for SD Card."""
+    """Download song as song.txt (CSV format) for SD Card or Web Serial streaming."""
     song = SONGS.get(song_id)
     if not song:
         abort(404, description="Song not found")
@@ -188,22 +140,6 @@ def download_song(song_id: int):
         as_attachment=True,
         download_name="song.txt",
     )
-
-
-@app.route("/api/send/<int:song_id>", methods=["POST"])
-def send_to_stm32(song_id: int):
-    """Trigger UART transfer to STM32."""
-    song = SONGS.get(song_id)
-    if not song:
-        return jsonify({"error": "Song not found"}), 404
-
-    # Call the UART helper function
-    success = send_over_uart(song["notes"], COM_PORT)
-
-    if success:
-        return jsonify({"message": f"Successfully sent '{song['title']}' to STM32!"}), 200
-    else:
-        return jsonify({"error": f"Failed to connect to {COM_PORT}. Check USB cable."}), 500
 
 
 if __name__ == "__main__":
