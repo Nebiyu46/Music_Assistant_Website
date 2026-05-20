@@ -1,0 +1,192 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(200, 255, 0, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(0, 229, 255, 0.06) 0%, transparent 50%),
+    var(--bg);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px 24px;
+  max-width: 720px;
+  width: 100%;
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 16px;
+  margin-bottom: 36px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent1);
+  box-shadow: 0 0 8px var(--accent1);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Title */
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 12vw, 9rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 28px;
+  text-transform: uppercase;
+}
+
+.accent {
+  color: var(--accent1);
+  text-shadow: 0 0 60px rgba(200, 255, 0, 0.25);
+}
+
+.sub {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--muted);
+  max-width: 400px;
+  margin: 0 auto 56px;
+  line-height: 1.7;
+}
+
+/* Cards */
+.cards {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 26px 28px;
+  width: 300px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: left;
+  color: var(--text);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.cardStm::before {
+  background: radial-gradient(ellipse at 30% 50%, rgba(200, 255, 0, 0.07), transparent 70%);
+}
+
+.cardPlayer::before {
+  background: radial-gradient(ellipse at 30% 50%, rgba(0, 229, 255, 0.07), transparent 70%);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.cardStm:hover {
+  border-color: rgba(200, 255, 0, 0.35);
+  box-shadow: 0 8px 40px rgba(200, 255, 0, 0.08);
+}
+
+.cardPlayer:hover {
+  border-color: rgba(0, 229, 255, 0.35);
+  box-shadow: 0 8px 40px rgba(0, 229, 255, 0.08);
+}
+
+.cardIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.cardBody {
+  flex: 1;
+}
+
+.cardBody h2 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+  letter-spacing: -0.01em;
+}
+
+.cardBody p {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.cardArrow {
+  font-size: 1.1rem;
+  color: var(--muted);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* Add these alongside your existing .cardStm and .cardPlayer styles */
+
+.cardScore::before {
+  background: radial-gradient(ellipse at 30% 50%, rgba(255, 0, 255, 0.07), transparent 70%);
+}
+
+.cardScore:hover {
+  border-color: rgba(255, 0, 255, 0.35);
+  box-shadow: 0 8px 40px rgba(255, 0, 255, 0.08);
+}
+
+.card:hover .cardArrow {
+  transform: translateX(4px);
+  color: var(--text);
+}
+
+/* Footer */
+.footer {
+  margin-top: 56px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: rgba(240, 240, 240, 0.2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
