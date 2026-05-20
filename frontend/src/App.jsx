@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import StmPage from "./pages/StmPage";
 import PlayerPage from "./pages/PlayerPage";
 import ScorePage from "./pages/ScorePage";
+import TranscribePage from "./pages/TranscribePage";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/stm32" element={<StmPage />} />
         <Route path="/player" element={<PlayerPage />} />
         <Route path="/score" element={<ScorePage />} />
+        <Route path="/transcribe" element={<TranscribePage />} />
       </Routes>
     </BrowserRouter>
   );

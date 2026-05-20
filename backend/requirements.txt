@@ -1,3 +1,14 @@
 Flask==3.0.0
 flask-cors==4.0.0
 mido==1.3.2
+music21
+
+# Audio-to-MIDI transcription (see vendor/basic-pitch-torch)
+torch
+nnAudio
+numpy
+librosa
+resampy
+scipy
+pretty_midi
+mir_eval

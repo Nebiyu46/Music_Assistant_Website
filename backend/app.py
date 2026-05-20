@@ -1,4 +1,5 @@
 import io
+import tempfile
 from pathlib import Path
 from typing import Dict, List, Tuple
 from itertools import groupby
@@ -8,12 +9,14 @@ from flask import Flask, abort, jsonify, send_file, request
 from flask_cors import CORS
 from music21 import converter
 
+from transcription import transcribe_wav_to_midi_bytes
+
 # --- CONFIGURATION ---
 BASE_DIR = Path(__file__).resolve().parent
 SONGS_DIR = BASE_DIR / "songs"
 
 app = Flask(__name__)
-CORS(app)  # Allow React to talk to Flask
+CORS(app, expose_headers=["X-Note-Count"])
 
 # Store loaded songs in memory
 SONGS: Dict[int, Dict[str, List[Tuple[int, int, int]]]] = {}
@@ -118,6 +121,43 @@ def convert_upload():
             io.BytesIO(data),
             mimetype="application/vnd.recordare.musicxml+xml"
         )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/transcribe", methods=["POST"])
+def transcribe_audio():
+    """Transcribe an uploaded WAV file to MIDI using the finetuned Basic Pitch model."""
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+    if not file.filename:
+        return jsonify({"error": "Empty filename"}), 400
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in (".wav", ".wave"):
+        return jsonify({"error": "Only .wav files are supported"}), 400
+
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            file.save(tmp.name)
+            wav_path = Path(tmp.name)
+
+        midi_bytes, note_count = transcribe_wav_to_midi_bytes(wav_path)
+        wav_path.unlink(missing_ok=True)
+
+        out_name = Path(file.filename).stem + ".mid"
+        response = send_file(
+            io.BytesIO(midi_bytes),
+            mimetype="audio/midi",
+            as_attachment=True,
+            download_name=out_name,
+        )
+        response.headers["X-Note-Count"] = str(note_count)
+        return response
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 503
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

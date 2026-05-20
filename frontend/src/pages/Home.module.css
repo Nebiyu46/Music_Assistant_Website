@@ -176,6 +176,15 @@
   box-shadow: 0 8px 40px rgba(255, 0, 255, 0.08);
 }
 
+.cardTranscribe::before {
+  background: radial-gradient(ellipse at 30% 50%, rgba(255, 160, 0, 0.07), transparent 70%);
+}
+
+.cardTranscribe:hover {
+  border-color: rgba(255, 160, 0, 0.35);
+  box-shadow: 0 8px 40px rgba(255, 160, 0, 0.08);
+}
+
 .card:hover .cardArrow {
   transform: translateX(4px);
   color: var(--text);

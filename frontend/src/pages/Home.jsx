@@ -71,6 +71,19 @@ export default function Home() {
             </div>
             <div className={styles.cardArrow}>→</div>
           </button>
+
+          <button
+            className={`${styles.card} ${styles.cardTranscribe}`}
+            onClick={() => navigate("/transcribe")}
+            style={{ flex: "0 0 auto", minWidth: "260px", whiteSpace: "normal" }}
+          >
+            <div className={styles.cardIcon}>🎙️</div>
+            <div className={styles.cardBody}>
+              <h2>Audio Transcription</h2>
+              <p>Upload a WAV recording and get an automatic MIDI transcription.</p>
+            </div>
+            <div className={styles.cardArrow}>→</div>
+          </button>
         </div>
 
         {/* Tiny footer line */}

@@ -1,0 +1,3 @@
+[submodule "backend/vendor/basic-pitch-torch"]
+	path = backend/vendor/basic-pitch-torch
+	url = https://github.com/gudgud96/basic-pitch-torch.git
