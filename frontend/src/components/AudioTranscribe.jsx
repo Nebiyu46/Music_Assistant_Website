@@ -1,19 +1,22 @@
 import { useState } from "react";
 import styles from "./MidiScore.module.css";
+import {
+  fetchStm32CsvFromMidiBlob,
+  sendCsvToStm32,
+} from "../utils/stm32";
+import DragDropZone from "./DragDropZone";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
 export default function AudioTranscribe() {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [status, setStatus] = useState("Select a WAV recording to transcribe.");
+  const [status, setStatus] = useState("Drop a WAV recording or click to browse.");
   const [midiBlob, setMidiBlob] = useState(null);
   const [midiName, setMidiName] = useState("");
   const [noteCount, setNoteCount] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleFile = (file) => {
     setSelectedFile(file);
     setMidiBlob(null);
     setNoteCount(null);
@@ -69,6 +72,24 @@ export default function AudioTranscribe() {
     URL.revokeObjectURL(url);
   };
 
+  const handleSendToStm32 = async () => {
+    if (!midiBlob) return;
+    setBusy(true);
+    setStatus("Converting MIDI for STM32…");
+
+    try {
+      const csv = await fetchStm32CsvFromMidiBlob(midiBlob, midiName);
+      setStatus("Select your STM32 port…");
+      await sendCsvToStm32(csv, setStatus);
+      setStatus("Transfer complete.");
+    } catch (err) {
+      console.error(err);
+      setStatus(`Error: ${err.message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className={styles.layout}>
       <div className={styles.sidebar}>
@@ -81,15 +102,14 @@ export default function AudioTranscribe() {
         </div>
 
         <div className={styles.inputGroup}>
-          <label className={styles.uploadBox}>
-            📁 Choose WAV File
-            <input
-              type="file"
-              hidden
-              accept=".wav,audio/wav,audio/wave"
-              onChange={handleFileChange}
-            />
-          </label>
+          <DragDropZone
+            accept=".wav,.wave,audio/wav,audio/wave"
+            onFile={handleFile}
+            disabled={busy}
+            className={styles.uploadBox}
+          >
+            📁 Drop WAV here or click to browse
+          </DragDropZone>
           {selectedFile && (
             <div className={styles.fileName}>{selectedFile.name}</div>
           )}
@@ -100,13 +120,23 @@ export default function AudioTranscribe() {
           onClick={handleTranscribe}
           disabled={!selectedFile || busy}
         >
-          {busy ? "Transcribing…" : "🎵 Transcribe to MIDI"}
+          {busy ? "Working…" : "🎵 Transcribe to MIDI"}
         </button>
 
         {midiBlob && (
-          <button className={styles.primaryBtn} onClick={handleDownload}>
-            ⬇️ Download MIDI
-          </button>
+          <>
+            <button className={styles.primaryBtn} onClick={handleDownload} disabled={busy}>
+              ⬇️ Download MIDI
+            </button>
+            <button
+              className={styles.primaryBtn}
+              onClick={handleSendToStm32}
+              disabled={busy}
+              style={{ background: "var(--accent2, #00e5ff)", color: "#000" }}
+            >
+              ⚡ Send to STM32
+            </button>
+          </>
         )}
 
         <div className={styles.status}>{status}</div>
@@ -130,17 +160,15 @@ export default function AudioTranscribe() {
                 maxWidth: 420,
               }}
             >
-              <p style={{ fontSize: "1.1rem", marginBottom: 12 }}>
-                {midiName}
-              </p>
+              <p style={{ fontSize: "1.1rem", marginBottom: 12 }}>{midiName}</p>
               {noteCount != null && (
                 <p style={{ color: "var(--accent2, #00e5ff)", marginBottom: 24 }}>
                   {noteCount} notes detected
                 </p>
               )}
               <p style={{ color: "var(--muted, #888)", fontSize: "0.85rem" }}>
-                Download the MIDI file, then open it in the MIDI Player or Sheet
-                Music studio.
+                Download the MIDI, send it straight to your STM32, or open it in
+                the Player / Sheet Music pages.
               </p>
             </div>
           ) : (

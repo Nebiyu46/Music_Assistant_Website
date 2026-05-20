@@ -40,7 +40,7 @@ export default function Home() {
             <div className={styles.cardIcon}>⚡</div>
             <div className={styles.cardBody}>
               <h2>STM32 Transfer</h2>
-              <p>Pick a song and send it directly to your device over serial.</p>
+              <p>Upload a MIDI file and send it to your device over serial.</p>
             </div>
             <div className={styles.cardArrow}>→</div>
           </button>

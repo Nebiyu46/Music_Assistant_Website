@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Midi } from "@tonejs/midi";
 import * as Tone from "tone";
+import DragDropZone from "./DragDropZone";
 import styles from "./MidiPlayer.module.css";
 
 const COLORS = [
@@ -147,8 +148,7 @@ export default function MidiPlayer() {
     return () => cancelAnimationFrame(rafRef.current);
   }, [notes, playing, duration]);
 
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
+  const loadMidiFile = async (file) => {
     if (!file) return;
 
     await handleStop();
@@ -174,6 +174,8 @@ export default function MidiPlayer() {
 
     Tone.Transport.position = 0;
   };
+
+  const handleUpload = (e) => loadMidiFile(e.target.files[0]);
 
   const handlePlay = async () => {
     if (!notes.length) return;
@@ -207,10 +209,13 @@ export default function MidiPlayer() {
   return (
     <div className={styles.player}>
       <div className={styles.topbar}>
-        <label className={styles.uploadBtn}>
-          <input type="file" accept=".mid,.midi" onChange={handleUpload} hidden />
+        <DragDropZone
+          accept=".mid,.midi,audio/midi,audio/mid"
+          onFile={loadMidiFile}
+          className={styles.uploadBtn}
+        >
           ↑ Load MIDI
-        </label>
+        </DragDropZone>
 
         {fileName && <span className={styles.fileName}>{fileName}</span>}
 
@@ -246,10 +251,17 @@ export default function MidiPlayer() {
         </div>
       </div>
 
-      <div className={styles.canvasContainer}>
+      <DragDropZone
+        accept=".mid,.midi,audio/midi,audio/mid"
+        onFile={loadMidiFile}
+        className={styles.canvasContainer}
+        clickToBrowse={false}
+      >
         <canvas ref={canvasRef} className={styles.canvas} />
-        {!notes.length && <div className={styles.empty}>Load a .mid file above to begin</div>}
-      </div>
+        {!notes.length && (
+          <div className={styles.empty}>Drop a .mid file here or use Load MIDI above</div>
+        )}
+      </DragDropZone>
 
       <div className={styles.progressRow}>
         <span className={styles.time}>{fmt(elapsed)}</span>

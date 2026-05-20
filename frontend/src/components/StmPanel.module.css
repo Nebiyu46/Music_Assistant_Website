@@ -149,3 +149,24 @@
   border-radius: 50%;
   box-shadow: 0 0 8px var(--accent2);
 }
+
+.footerLink {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.footerLink a {
+  color: var(--accent2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footerLink a:hover {
+  color: var(--text);
+}

@@ -61,6 +61,11 @@ def parse_midi_to_notes(midi_path: Path) -> List[Tuple[int, int, int]]:
     return filtered
 
 
+def notes_to_csv(notes: List[Tuple[int, int, int]]) -> str:
+    """STM32 format: start_ms,note,duration_ms per line."""
+    return "\n".join(f"{start},{note},{duration}" for start, note, duration in notes)
+
+
 # --- INITIALIZATION ---
 def load_songs_from_folder():
     """Load all .mid files from the 'songs' folder."""
@@ -162,6 +167,42 @@ def transcribe_audio():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/convert-midi-stm32", methods=["POST"])
+def convert_midi_stm32():
+    """Convert uploaded MIDI to STM32 CSV (start_ms,note,duration_ms)."""
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+    if not file.filename:
+        return jsonify({"error": "Empty filename"}), 400
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in (".mid", ".midi"):
+        return jsonify({"error": "Only .mid / .midi files are supported"}), 400
+
+    try:
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+            file.save(tmp.name)
+            midi_path = Path(tmp.name)
+
+        notes = parse_midi_to_notes(midi_path)
+        midi_path.unlink(missing_ok=True)
+
+        if not notes:
+            return jsonify({"error": "No notes found in MIDI file"}), 400
+
+        csv_body = notes_to_csv(notes)
+        response = send_file(
+            io.BytesIO(csv_body.encode("utf-8")),
+            mimetype="text/plain",
+        )
+        response.headers["X-Note-Count"] = str(len(notes))
+        return response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/download/<int:song_id>", methods=["GET"])
 def download_song(song_id: int):
     """Download song as song.txt (CSV format) for SD Card or Web Serial streaming."""
@@ -169,8 +210,7 @@ def download_song(song_id: int):
     if not song:
         abort(404, description="Song not found")
 
-    lines = [f"{start},{note},{duration}" for start, note, duration in song["notes"]]
-    csv_body = "\n".join(lines)
+    csv_body = notes_to_csv(song["notes"])
 
     file_stream = io.BytesIO(csv_body.encode("utf-8"))
     

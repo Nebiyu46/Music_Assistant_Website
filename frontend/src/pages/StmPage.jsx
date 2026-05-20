@@ -1,99 +1,58 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import DragDropZone from "../components/DragDropZone";
 import styles from "../components/StmPanel.module.css";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+import scoreStyles from "../components/MidiScore.module.css";
+import {
+  fetchStm32CsvFromMidiFile,
+  sendCsvToStm32,
+} from "../utils/stm32";
 
 export default function StmPage() {
-  const [songs, setSongs] = useState([]);
-  const [selectedId, setSelectedId] = useState("");
+  const [midiFile, setMidiFile] = useState(null);
+  const [csvText, setCsvText] = useState("");
+  const [noteCount, setNoteCount] = useState(null);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchSongs = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/songs`);
-        if (!res.ok) throw new Error("Failed to load songs");
-        const data = await res.json();
-        setSongs(data);
-        if (data.length > 0) setSelectedId(data[0].id);
-      } catch {
-        setStatus("Error loading songs.");
-      }
-    };
-    fetchSongs();
-  }, []);
-
-  const handleDownload = async () => {
-    if (!selectedId) return;
+  const handleMidiFile = async (file) => {
+    setMidiFile(file);
+    setCsvText("");
+    setNoteCount(null);
     setLoading(true);
+    setStatus("Converting MIDI for STM32…");
+
     try {
-      const res = await fetch(`${API_BASE}/api/download/${selectedId}`);
-      if (!res.ok) throw new Error("Download failed");
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "song.txt";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      setStatus("Downloaded successfully.");
-    } catch {
-      setStatus("Download failed.");
+      const csv = await fetchStm32CsvFromMidiFile(file);
+      setCsvText(csv);
+      const lines = csv.split("\n").filter((l) => l.trim());
+      setNoteCount(lines.length);
+      setStatus(`Ready: ${lines.length} notes converted.`);
+    } catch (err) {
+      setStatus(`Error: ${err.message}`);
+      setMidiFile(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper function to replace Python's time.sleep()
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const handleDownload = () => {
+    if (!csvText) return;
+    const blob = new Blob([csvText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "song.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+    setStatus("Downloaded song.txt");
+  };
 
   const handleSendToDevice = async () => {
-    if (!selectedId) return;
-
-    if (!("serial" in navigator)) {
-      setStatus("Web Serial API is not supported in this browser. Use Chrome or Edge.");
-      return;
-    }
-
+    if (!csvText) return;
     setLoading(true);
-    setStatus("Select your STM32 port...");
-
     try {
-      // 1. Fetch the parsed text data directly from the existing download endpoint
-      const res = await fetch(`${API_BASE}/api/download/${selectedId}`);
-      if (!res.ok) throw new Error("Failed to fetch song data from backend");
-      const csvText = await res.text();
-      const lines = csvText.split("\n").filter((line) => line.trim() !== "");
-
-      // 2. Request port access from user and open connection
-      const port = await navigator.serial.requestPort();
-      await port.open({ baudRate: 115200 });
-      setStatus("Port opened. Sending data...");
-
-      const encoder = new TextEncoder();
-      const writer = port.writable.getWriter();
-
-      // 3. Send START command
-      await writer.write(encoder.encode("START\n"));
-      await delay(100);
-
-      // 4. Stream Data
-      for (let i = 0; i < lines.length; i++) {
-        await writer.write(encoder.encode(lines[i] + "\n"));
-        // 10ms throttle to prevent STM32 buffer overflow
-        await delay(10);
-      }
-
-      // 5. Send END command
-      await writer.write(encoder.encode("END\n"));
-      
-      writer.releaseLock();
-      await delay(500); // Give the STM32 time to process END
-      await port.close();
-
+      await sendCsvToStm32(csvText, setStatus);
       setStatus("Transfer complete.");
     } catch (err) {
       console.error(err);
@@ -104,43 +63,60 @@ export default function StmPage() {
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", width: "100vw", backgroundColor: "var(--bg)" }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        width: "100vw",
+        backgroundColor: "var(--bg)",
+        padding: "24px",
+        boxSizing: "border-box",
+      }}
+    >
       <div className={styles.panel}>
         <div className={styles.header}>
           <span className={styles.chip}>⚡ STM32</span>
           <h2 className={styles.title}>Device Transfer</h2>
-          <p className={styles.sub}>Select a song and push it to your STM32 over UART serial.</p>
+          <p className={styles.sub}>
+            Upload a MIDI file. It is converted to start,note,duration (ms) and
+            sent over UART serial.
+          </p>
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label}>Song</label>
-          <select
-            className={styles.select}
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
+          <label className={styles.label}>MIDI file</label>
+          <DragDropZone
+            accept=".mid,.midi,audio/midi,audio/mid"
+            onFile={handleMidiFile}
+            disabled={loading}
+            className={scoreStyles.uploadBox}
           >
-            {songs.map((song) => (
-              <option key={song.id} value={song.id}>
-                {song.title}
-              </option>
-            ))}
-          </select>
+            📁 Drop MIDI here or click to browse
+          </DragDropZone>
+          {midiFile && (
+            <div className={scoreStyles.fileName}>{midiFile.name}</div>
+          )}
+          {noteCount != null && (
+            <div className={scoreStyles.fileName}>{noteCount} notes</div>
+          )}
         </div>
 
         <div className={styles.actions}>
           <button
             className={`${styles.btn} ${styles.btnGhost}`}
             onClick={handleDownload}
-            disabled={loading}
+            disabled={loading || !csvText}
           >
             ↓ Download .txt
           </button>
           <button
             className={`${styles.btn} ${styles.btnPrimary}`}
             onClick={handleSendToDevice}
-            disabled={loading}
+            disabled={loading || !csvText}
           >
-            {loading ? "Sending…" : "Send to STM32 →"}
+            {loading ? "Working…" : "Send to STM32 →"}
           </button>
         </div>
 
@@ -150,6 +126,11 @@ export default function StmPage() {
             {status}
           </div>
         )}
+
+        <p className={styles.footerLink}>
+          Don&apos;t have a MIDI file?{" "}
+          <Link to="/transcribe">Transcribe from WAV →</Link>
+        </p>
       </div>
     </div>
   );
